@@ -1,12 +1,43 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong Migliorato</title>
+
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #141e30, #243b55);
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+canvas {
+    border: 4px solid white;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    background: black;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="pongCanvas" width="800" height="400"></canvas>
+
 <script>
 const canvas = document.getElementById("pongCanvas");
 const ctx = canvas.getContext("2d");
 
-// LIVELLI DI DIFFICOLTÀ
+// LIVELLI
 const levels = {
-    easy: { aiSpeed: 3, error: 30 },
-    medium: { aiSpeed: 5, error: 15 },
-    hard: { aiSpeed: 7, error: 5 }
+    easy: { aiSpeed: 3, error: 35 },
+    medium: { aiSpeed: 5, error: 20 },
+    hard: { aiSpeed: 7, error: 8 }
 };
 
 let currentLevel = "medium";
@@ -43,8 +74,14 @@ const com = {
 const net = {
     x: canvas.width / 2 - 1,
     width: 2,
-    color: "#555"
+    color: "#888"
 };
+
+// CONTROLLI MOUSE
+canvas.addEventListener("mousemove", evt => {
+    let rect = canvas.getBoundingClientRect();
+    user.y = evt.clientY - rect.top - user.height / 2;
+});
 
 // DISEGNO
 function drawRect(x, y, w, h, color) {
@@ -77,11 +114,10 @@ function drawText(text, x, y) {
     ctx.fillText(text, x, y);
 }
 
-// MOUSE CONTROL
-canvas.addEventListener("mousemove", evt => {
-    let rect = canvas.getBoundingClientRect();
-    user.y = evt.clientY - rect.top - user.height / 2;
-});
+function drawLevel() {
+    ctx.font = "20px Arial";
+    ctx.fillText("Livello: " + currentLevel, 20, 30);
+}
 
 // RESET
 function resetBall() {
@@ -91,7 +127,7 @@ function resetBall() {
     ball.speed = 6;
 }
 
-// COLLISION
+// COLLISIONE
 function collision(b, p) {
     return b.x - b.radius < p.x + p.width &&
            b.x + b.radius > p.x &&
@@ -101,6 +137,7 @@ function collision(b, p) {
 
 // UPDATE
 function update() {
+
     // PUNTEGGIO
     if (ball.x < 0) {
         com.score++;
@@ -118,14 +155,13 @@ function update() {
         ball.velocityY *= -1;
     }
 
-    // IA MIGLIORATA (con errore)
+    // IA
     let level = levels[currentLevel];
     let target = ball.y - (com.height / 2);
 
-    // errore casuale
+    // errore umano simulato
     target += (Math.random() * level.error * 2) - level.error;
 
-    // movimento limitato (no teleport)
     if (com.y < target) {
         com.y += level.aiSpeed;
     } else {
@@ -151,8 +187,9 @@ function update() {
 
 // RENDER
 function render() {
-    // sfondo gradient
-    let grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+
+    // sfondo
+    let grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     grad.addColorStop(0, "#0f2027");
     grad.addColorStop(1, "#203a43");
 
@@ -160,8 +197,11 @@ function render() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     drawNet();
+
     drawText(user.score, canvas.width / 4, 50);
     drawText(com.score, 3 * canvas.width / 4, 50);
+
+    drawLevel();
 
     drawRect(user.x, user.y, user.width, user.height, user.color);
     drawRect(com.x, com.y, com.width, com.height, com.color);
@@ -169,7 +209,7 @@ function render() {
     drawBall();
 }
 
-// GAME LOOP
+// LOOP
 function game() {
     update();
     render();
@@ -177,10 +217,13 @@ function game() {
 
 setInterval(game, 1000 / 60);
 
-// CAMBIO LIVELLO CON TASTI
+// CAMBIO LIVELLO
 document.addEventListener("keydown", e => {
     if (e.key === "1") currentLevel = "easy";
     if (e.key === "2") currentLevel = "medium";
     if (e.key === "3") currentLevel = "hard";
 });
 </script>
+
+</body>
+</html>
